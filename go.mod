@@ -1,4 +1,4 @@
-module github.com/yedf/dtm
+module github.com/yedf/dtmcli
 
 go 1.14
 
