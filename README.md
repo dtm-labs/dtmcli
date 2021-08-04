@@ -11,5 +11,5 @@ a client for distributed transaction manager [dtm](https://github.com/yedf/dtm)
 
 ### 完整示例
 
-[dtmcli](https://github.com/yedf/dtmcli-go-sample)
+[dtmcli-go-sample](https://github.com/yedf/dtmcli-go-sample)
 
