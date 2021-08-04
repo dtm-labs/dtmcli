@@ -1,0 +1,1 @@
+cp *.go ../dtm/dtmcli/
