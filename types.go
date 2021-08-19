@@ -48,22 +48,31 @@ type TransResult struct {
 
 // TransBase 事务的基础类
 type TransBase struct {
+	Gid       string `json:"gid"`
+	TransType string `json:"trans_type"`
 	IDGenerator
 	Dtm string
 	// WaitResult 是否等待全局事务的最终结果
 	WaitResult bool
 }
 
-// TransBaseFromQuery construct transaction info from request
-func TransBaseFromQuery(qs url.Values) *TransBase {
+// NewTransBase 1
+func NewTransBase(gid string, transType string, dtm string, parentID string) *TransBase {
 	return &TransBase{
-		IDGenerator: IDGenerator{parentID: qs.Get("branch_id")},
-		Dtm:         qs.Get("dtm"),
+		Gid:         gid,
+		TransType:   transType,
+		IDGenerator: IDGenerator{parentID: parentID},
+		Dtm:         dtm,
 	}
 }
 
-// CallDtm 调用dtm服务器，返回事务的状态
-func (tb *TransBase) CallDtm(body interface{}, operation string) error {
+// TransBaseFromQuery construct transaction info from request
+func TransBaseFromQuery(qs url.Values) *TransBase {
+	return NewTransBase(qs.Get("gid"), qs.Get("trans_type"), qs.Get("dtm"), qs.Get("branch_id"))
+}
+
+// callDtm 调用dtm服务器，返回事务的状态
+func (tb *TransBase) callDtm(body interface{}, operation string) error {
 	params := MS{}
 	if tb.WaitResult {
 		params["wait_result"] = "1"
@@ -82,6 +91,9 @@ func (tb *TransBase) CallDtm(body interface{}, operation string) error {
 
 // ErrFailure 表示返回失败，要求回滚
 var ErrFailure = errors.New("transaction FAILURE")
+
+// ErrPending 表示暂时失败，要求重试
+var ErrPending = errors.New("transaction PENDING")
 
 // ResultSuccess 表示返回成功，可以进行下一步
 var ResultSuccess = M{"dtm_result": "SUCCESS"}

@@ -109,7 +109,7 @@ func MustRemarshal(from interface{}, to interface{}) {
 func Logf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	n := time.Now()
-	ts := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d.%03d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second(), n.Nanosecond()/1000000)
+	ts := fmt.Sprintf("%s.%03d", n.Format("2006-01-02 15:04:05"), n.Nanosecond()/1000000)
 	var file string
 	var line int
 	for i := 1; ; i++ {
@@ -228,7 +228,7 @@ func StxExec(tx *sql.Tx, sql string, values ...interface{}) (affected int64, rer
 
 // StxQueryRow use raw tx to query row
 func StxQueryRow(tx *sql.Tx, query string, args ...interface{}) *sql.Row {
-	Logf("querying: "+query, args...)
+	Logf("querying: %s %v", query, args)
 	return tx.QueryRow(query, args...)
 }
 
@@ -264,8 +264,13 @@ func CheckResult(res interface{}, err error) error {
 	if ok {
 		return CheckResponse(resp, err)
 	}
-	if res != nil && strings.Contains(MustMarshalString(res), "FAILURE") {
-		return ErrFailure
+	if res != nil {
+		str := MustMarshalString(res)
+		if strings.Contains(str, "FAILURE") {
+			return ErrFailure
+		} else if strings.Contains(str, "PENDING") {
+			return ErrPending
+		}
 	}
 	return err
 }
