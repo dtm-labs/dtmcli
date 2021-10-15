@@ -37,6 +37,11 @@ func (g *IDGenerator) NewBranchID() string {
 		panic(fmt.Errorf("total branch id is longer than 20"))
 	}
 	g.branchID = g.branchID + 1
+	return g.CurrentBranchID()
+}
+
+// CurrentBranchID return current branchID
+func (g *IDGenerator) CurrentBranchID() string {
 	return g.parentID + fmt.Sprintf("%02d", g.branchID)
 }
 
@@ -83,7 +88,7 @@ func (tb *TransBase) callDtm(body interface{}, operation string) error {
 		return err
 	}
 	tr := resp.Result().(*TransResult)
-	if tr.DtmResult == "FAILURE" {
+	if tr.DtmResult == ResultFailure {
 		return errors.New("FAILURE: " + tr.Message)
 	}
 	return nil
@@ -95,8 +100,8 @@ var ErrFailure = errors.New("transaction FAILURE")
 // ErrPending 表示暂时失败，要求重试
 var ErrPending = errors.New("transaction PENDING")
 
-// ResultSuccess 表示返回成功，可以进行下一步
-var ResultSuccess = M{"dtm_result": "SUCCESS"}
+// MapSuccess 表示返回成功，可以进行下一步
+var MapSuccess = M{"dtm_result": ResultSuccess}
 
-// ResultFailure 表示返回失败，要求回滚
-var ResultFailure = M{"dtm_result": "FAILURE"}
+// MapFailure 表示返回失败，要求回滚
+var MapFailure = M{"dtm_result": ResultFailure}

@@ -8,8 +8,10 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -105,14 +107,17 @@ func MustRemarshal(from interface{}, to interface{}) {
 	E2P(err)
 }
 
+var layout = "2006-01-02 15:04:05.999"
+
 // Logf 输出日志
 func Logf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	n := time.Now()
-	ts := fmt.Sprintf("%s.%03d", n.Format("2006-01-02 15:04:05"), n.Nanosecond()/1000000)
+
+	ts := time.Now().Format(layout)
+
 	var file string
 	var line int
-	for i := 1; ; i++ {
+	for i := 1; i < 10; i++ {
 		_, file, line, _ = runtime.Caller(i)
 		if strings.Contains(file, "dtm") {
 			break
@@ -131,6 +136,7 @@ var FatalExitFunc = func() { os.Exit(1) }
 
 // LogFatalf 采用红色打印错误类信息， 并退出
 func LogFatalf(fmt string, args ...interface{}) {
+	fmt += "\n" + string(debug.Stack())
 	Logf("\x1b[31m\n"+fmt+"\x1b[0m\n", args...)
 	FatalExitFunc()
 }
@@ -180,30 +186,36 @@ func MayReplaceLocalhost(host string) string {
 	return host
 }
 
-var sqlDbs = map[string]*sql.DB{}
+var sqlDbs sync.Map
 
-// SdbGet get pooled sql.DB
-func SdbGet(conf map[string]string) (*sql.DB, error) {
+// PooledDB get pooled sql.DB
+func PooledDB(conf map[string]string) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	if sqlDbs[dsn] == nil {
-		db, err := SdbAlone(conf)
+	db, ok := sqlDbs.Load(dsn)
+	if !ok {
+		db2, err := StandaloneDB(conf)
 		if err != nil {
 			return nil, err
 		}
-		sqlDbs[dsn] = db
+		db = db2
+		sqlDbs.Store(dsn, db)
 	}
-	return sqlDbs[dsn], nil
+	return db.(*sql.DB), nil
 }
 
-// SdbAlone get a standalone db connection
-func SdbAlone(conf map[string]string) (*sql.DB, error) {
+// StandaloneDB get a standalone db instance
+func StandaloneDB(conf map[string]string) (*sql.DB, error) {
 	dsn := GetDsn(conf)
-	Logf("opening alone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
+	Logf("opening standalone %s: %s", conf["driver"], strings.Replace(dsn, conf["password"], "****", 1))
 	return sql.Open(conf["driver"], dsn)
 }
 
 // DBExec use raw db to exec
 func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr error) {
+	if sql == "" {
+		return 0, nil
+	}
+	sql = GetDBSpecial().GetPlaceHoldSQL(sql)
 	r, rerr := db.Exec(sql, values...)
 	if rerr == nil {
 		affected, rerr = r.RowsAffected()
@@ -214,21 +226,15 @@ func DBExec(db DB, sql string, values ...interface{}) (affected int64, rerr erro
 	return
 }
 
-// DBQueryRow use raw tx to query row
-func DBQueryRow(db DB, query string, args ...interface{}) *sql.Row {
-	Logf("querying: "+query, args...)
-	return db.QueryRow(query, args...)
-}
-
 // GetDsn get dsn from map config
 func GetDsn(conf map[string]string) string {
-	conf["host"] = MayReplaceLocalhost(conf["host"])
+	host := MayReplaceLocalhost(conf["host"])
 	driver := conf["driver"]
 	dsn := MS{
 		"mysql": fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
-			conf["user"], conf["password"], conf["host"], conf["port"], conf["database"]),
+			conf["user"], conf["password"], host, conf["port"], conf["database"]),
 		"postgres": fmt.Sprintf("host=%s user=%s password=%s dbname='%s' port=%s sslmode=disable TimeZone=Asia/Shanghai",
-			conf["host"], conf["user"], conf["password"], conf["database"], conf["port"]),
+			host, conf["user"], conf["password"], conf["database"], conf["port"]),
 	}[driver]
 	PanicIf(dsn == "", fmt.Errorf("unknow driver: %s", driver))
 	return dsn
@@ -239,7 +245,7 @@ func CheckResponse(resp *resty.Response, err error) error {
 	if err == nil && resp != nil {
 		if resp.IsError() {
 			return errors.New(resp.String())
-		} else if strings.Contains(resp.String(), "FAILURE") {
+		} else if strings.Contains(resp.String(), ResultFailure) {
 			return ErrFailure
 		}
 	}
@@ -254,7 +260,7 @@ func CheckResult(res interface{}, err error) error {
 	}
 	if res != nil {
 		str := MustMarshalString(res)
-		if strings.Contains(str, "FAILURE") {
+		if strings.Contains(str, ResultFailure) {
 			return ErrFailure
 		} else if strings.Contains(str, "PENDING") {
 			return ErrPending
