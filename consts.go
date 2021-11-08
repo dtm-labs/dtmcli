@@ -1,14 +1,20 @@
 package dtmcli
 
+import (
+	"github.com/yedf/dtm/dtmcli/dtmimp"
+)
+
 const (
-	// StatusPrepared status for global trans status. exists only in tran message
+	// StatusPrepared status for global/branch trans status.
 	StatusPrepared = "prepared"
-	// StatusSubmitted StatusSubmitted status for global trans status.
+	// StatusSubmitted status for global trans status.
 	StatusSubmitted = "submitted"
-	// StatusSucceed status for global trans status.
+	// StatusSucceed status for global/branch trans status.
 	StatusSucceed = "succeed"
-	// StatusFailed status for global trans status.
+	// StatusFailed status for global/branch trans status.
 	StatusFailed = "failed"
+	// StatusAborting status for global trans status.
+	StatusAborting = "aborting"
 
 	// BranchTry branch type for TCC
 	BranchTry = "try"
@@ -26,12 +32,26 @@ const (
 	BranchRollback = "rollback"
 
 	// ResultSuccess for result of a trans/trans branch
-	ResultSuccess = "SUCCESS"
+	ResultSuccess = dtmimp.ResultSuccess
 	// ResultFailure for result of a trans/trans branch
-	ResultFailure = "FAILURE"
+	ResultFailure = dtmimp.ResultFailure
+	// ResultOngoing for result of a trans/trans branch
+	ResultOngoing = dtmimp.ResultOngoing
 
 	// DBTypeMysql const for driver mysql
-	DBTypeMysql = "mysql"
+	DBTypeMysql = dtmimp.DBTypeMysql
 	// DBTypePostgres const for driver postgres
-	DBTypePostgres = "postgres"
+	DBTypePostgres = dtmimp.DBTypePostgres
 )
+
+// MapSuccess HTTP result of SUCCESS
+var MapSuccess = dtmimp.MapSuccess
+
+// MapFailure HTTP result of FAILURE
+var MapFailure = dtmimp.MapSuccess
+
+// ErrFailure error for returned failure
+var ErrFailure = dtmimp.ErrFailure
+
+// ErrOngoing error for returned ongoing
+var ErrOngoing = dtmimp.ErrOngoing
