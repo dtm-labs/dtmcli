@@ -1,7 +1,7 @@
 package dtmcli
 
 import (
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtmcli/dtmimp"
 )
 
 const (

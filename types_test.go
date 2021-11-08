@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtmcli/dtmimp"
 )
 
 func TestTypes(t *testing.T) {

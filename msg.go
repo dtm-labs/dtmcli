@@ -1,6 +1,6 @@
 package dtmcli
 
-import "github.com/yedf/dtm/dtmcli/dtmimp"
+import "github.com/yedf/dtmcli/dtmimp"
 
 // Msg reliable msg type
 type Msg struct {

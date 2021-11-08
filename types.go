@@ -3,7 +3,7 @@ package dtmcli
 import (
 	"fmt"
 
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtmcli/dtmimp"
 )
 
 // MustGenGid generate a new gid

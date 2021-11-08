@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/yedf/dtm/dtmcli/dtmimp"
+	"github.com/yedf/dtmcli/dtmimp"
 )
 
 // Tcc struct of tcc
