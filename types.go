@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 yedf. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
 package dtmcli
 
 import (
@@ -22,6 +28,9 @@ type DB = dtmimp.DB
 // Tx interface
 type Tx = dtmimp.Tx
 
+// TransOptions transaction option
+type TransOptions = dtmimp.TransOptions
+
 // SetCurrentDBType set currentDBType
 func SetCurrentDBType(dbType string) {
 	dtmimp.SetCurrentDBType(dbType)
@@ -30,4 +39,14 @@ func SetCurrentDBType(dbType string) {
 // GetCurrentDBType get currentDBType
 func GetCurrentDBType() string {
 	return dtmimp.GetCurrentDBType()
+}
+
+// SetXaSqlTimeoutMs set XaSqlTimeoutMs
+func XaSqlTimeoutMs(ms int) {
+	dtmimp.XaSqlTimeoutMs = ms
+}
+
+// GetXaSqlTimeoutMs get XaSqlTimeoutMs
+func GetXaSqlTimeoutMs() int {
+	return dtmimp.XaSqlTimeoutMs
 }

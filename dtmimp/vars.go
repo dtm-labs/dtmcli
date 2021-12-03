@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 yedf. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
 package dtmimp
 
 import (
@@ -11,6 +17,9 @@ var ErrFailure = errors.New("FAILURE")
 
 // ErrOngoing error of ONGOING
 var ErrOngoing = errors.New("ONGOING")
+
+// XaSqlTimeoutMs milliseconds for Xa sql to timeout
+var XaSqlTimeoutMs = 15000
 
 // MapSuccess HTTP result of SUCCESS
 var MapSuccess = map[string]interface{}{"dtm_result": ResultSuccess}

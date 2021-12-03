@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021 yedf. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
 package dtmcli
 
 import (
@@ -48,7 +54,7 @@ const (
 var MapSuccess = dtmimp.MapSuccess
 
 // MapFailure HTTP result of FAILURE
-var MapFailure = dtmimp.MapSuccess
+var MapFailure = dtmimp.MapFailure
 
 // ErrFailure error for returned failure
 var ErrFailure = dtmimp.ErrFailure
