@@ -13,7 +13,6 @@ import (
 
 // DBSpecial db specific operations
 type DBSpecial interface {
-	TimestampAdd(second int) string
 	GetPlaceHoldSQL(sql string) string
 	GetInsertIgnoreTemplate(tableAndValues string, pgConstraint string) string
 	GetXaSQL(command string, xid string) string
@@ -23,10 +22,6 @@ var dbSpecials = map[string]DBSpecial{}
 var currentDBType = DBTypeMysql
 
 type mysqlDBSpecial struct{}
-
-func (*mysqlDBSpecial) TimestampAdd(second int) string {
-	return fmt.Sprintf("date_add(now(), interval %d second)", second)
-}
 
 func (*mysqlDBSpecial) GetPlaceHoldSQL(sql string) string {
 	return sql
@@ -45,10 +40,6 @@ func init() {
 }
 
 type postgresDBSpecial struct{}
-
-func (*postgresDBSpecial) TimestampAdd(second int) string {
-	return fmt.Sprintf("current_timestamp + interval '%d second'", second)
-}
 
 func (*postgresDBSpecial) GetXaSQL(command string, xid string) string {
 	return map[string]string{

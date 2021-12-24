@@ -7,7 +7,7 @@
 package dtmcli
 
 import (
-	"github.com/yedf/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtmcli/dtmimp"
 )
 
 // Saga struct of saga

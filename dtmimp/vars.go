@@ -9,6 +9,7 @@ package dtmimp
 import (
 	"errors"
 
+	"github.com/dtm-labs/dtmcli/logger"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -36,12 +37,12 @@ func init() {
 	// RestyClient.SetRetryWaitTime(1 * time.Second)
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
-		Logf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
+		logger.Debugf("requesting: %s %s %v %v", r.Method, r.URL, r.Body, r.QueryParam)
 		return nil
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
 		r := resp.Request
-		Logf("requested: %s %s %s", r.Method, r.URL, resp.String())
+		logger.Debugf("requested: %s %s %s", r.Method, r.URL, resp.String())
 		return nil
 	})
 }

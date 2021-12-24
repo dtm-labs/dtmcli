@@ -9,7 +9,7 @@ package dtmcli
 import (
 	"fmt"
 
-	"github.com/yedf/dtmcli/dtmimp"
+	"github.com/dtm-labs/dtmcli/dtmimp"
 )
 
 // MustGenGid generate a new gid
@@ -27,6 +27,8 @@ type DB = dtmimp.DB
 
 // TransOptions transaction option
 type TransOptions = dtmimp.TransOptions
+
+type DBConf = dtmimp.DBConf
 
 // SetCurrentDBType set currentDBType
 func SetCurrentDBType(dbType string) {
