@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/dtm-labs/dtmcli/dtmimp"
+	"github.com/go-resty/resty/v2"
 )
 
 // MustGenGid generate a new gid
@@ -48,4 +49,23 @@ func SetXaSqlTimeoutMs(ms int) {
 // GetXaSqlTimeoutMs get XaSqlTimeoutMs
 func GetXaSqlTimeoutMs() int {
 	return dtmimp.XaSqlTimeoutMs
+}
+
+// SetPassthroughHeader apply to http header and grpc metadata
+func SetPassthroughHeader(headers []string) {
+	dtmimp.PassthroughHeaders = headers
+}
+
+func SetBarrierTableName(tablename string) {
+	dtmimp.BarrierTableName = tablename
+}
+
+// OnBeforeRequest add before request middleware
+func OnBeforeRequest(middleware func(c *resty.Client, r *resty.Request) error) {
+	dtmimp.RestyClient.OnBeforeRequest(middleware)
+}
+
+// OnAfterResponse add after request middleware
+func OnAfterResponse(middleware func(c *resty.Client, resp *resty.Response) error) {
+	dtmimp.RestyClient.OnAfterResponse(middleware)
 }
