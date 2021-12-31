@@ -51,8 +51,8 @@ func GetXaSqlTimeoutMs() int {
 	return dtmimp.XaSqlTimeoutMs
 }
 
-// SetPassthroughHeader apply to http header and grpc metadata
-func SetPassthroughHeader(headers []string) {
+// SetPassthroughHeaders apply to http header and grpc metadata
+func SetPassthroughHeaders(headers []string) {
 	dtmimp.PassthroughHeaders = headers
 }
 
