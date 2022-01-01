@@ -51,11 +51,6 @@ func GetXaSqlTimeoutMs() int {
 	return dtmimp.XaSqlTimeoutMs
 }
 
-// SetPassthroughHeaders apply to http header and grpc metadata
-func SetPassthroughHeaders(headers []string) {
-	dtmimp.PassthroughHeaders = headers
-}
-
 func SetBarrierTableName(tablename string) {
 	dtmimp.BarrierTableName = tablename
 }
@@ -68,4 +63,12 @@ func OnBeforeRequest(middleware func(c *resty.Client, r *resty.Request) error) {
 // OnAfterResponse add after request middleware
 func OnAfterResponse(middleware func(c *resty.Client, resp *resty.Response) error) {
 	dtmimp.RestyClient.OnAfterResponse(middleware)
+}
+
+// SetPassthroughHeaders experimental.
+// apply to http header and grpc metadata
+// dtm server will save these headers in trans creating request.
+// and then passthrough them to sub-trans
+func SetPassthroughHeaders(headers []string) {
+	dtmimp.PassthroughHeaders = headers
 }
