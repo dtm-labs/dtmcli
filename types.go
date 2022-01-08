@@ -29,6 +29,7 @@ type DB = dtmimp.DB
 // TransOptions transaction option
 type TransOptions = dtmimp.TransOptions
 
+// DBConf declares db configuration
 type DBConf = dtmimp.DBConf
 
 // SetCurrentDBType set currentDBType
@@ -41,28 +42,24 @@ func GetCurrentDBType() string {
 	return dtmimp.GetCurrentDBType()
 }
 
-// SetXaSqlTimeoutMs set XaSqlTimeoutMs
-func SetXaSqlTimeoutMs(ms int) {
-	dtmimp.XaSqlTimeoutMs = ms
+// SetXaSQLTimeoutMs set XaSQLTimeoutMs
+func SetXaSQLTimeoutMs(ms int) {
+	dtmimp.XaSQLTimeoutMs = ms
 }
 
-// GetXaSqlTimeoutMs get XaSqlTimeoutMs
-func GetXaSqlTimeoutMs() int {
-	return dtmimp.XaSqlTimeoutMs
+// GetXaSQLTimeoutMs get XaSQLTimeoutMs
+func GetXaSQLTimeoutMs() int {
+	return dtmimp.XaSQLTimeoutMs
 }
 
+// SetBarrierTableName sets barrier table name
 func SetBarrierTableName(tablename string) {
 	dtmimp.BarrierTableName = tablename
 }
 
-// OnBeforeRequest add before request middleware
-func OnBeforeRequest(middleware func(c *resty.Client, r *resty.Request) error) {
-	dtmimp.RestyClient.OnBeforeRequest(middleware)
-}
-
-// OnAfterResponse add after request middleware
-func OnAfterResponse(middleware func(c *resty.Client, resp *resty.Response) error) {
-	dtmimp.RestyClient.OnAfterResponse(middleware)
+// GetRestyClient get the resty.Client for http request
+func GetRestyClient() *resty.Client {
+	return dtmimp.RestyClient
 }
 
 // SetPassthroughHeaders experimental.
