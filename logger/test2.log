@@ -1,0 +1,3 @@
+2022-01-17T20:06:13.162+0800	[35mDEBUG[0m	logger/logger_test.go:25	a debug msg to /tmp/dtm-test.log|test2.log|stdout|stderr
+2022-01-17T20:06:35.040+0800	[35mDEBUG[0m	logger/logger_test.go:25	a debug msg to /tmp/dtm-test.log|test2.log|stdout|stderr
+2022-01-17T20:18:16.326+0800	[35mDEBUG[0m	logger/logger_test.go:25	a debug msg to /tmp/dtm-test.log|test2.log|stdout|stderr
