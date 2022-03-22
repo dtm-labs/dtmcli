@@ -1,4 +1,4 @@
-简体中文 | [English](./README.md)
+English | [简体中文](./README-cn.md)
 
 ## dtmcli
 `dtmcli` is the http client sdk for [dtm](https://github.com/dtm-labs/dtm), a distributed transaction framework.
