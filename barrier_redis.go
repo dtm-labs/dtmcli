@@ -3,6 +3,7 @@ package dtmcli
 import (
 	"fmt"
 
+	"github.com/dtm-labs/dtmcli/dtmimp"
 	"github.com/dtm-labs/dtmcli/logger"
 	"github.com/go-redis/redis/v8"
 )
@@ -12,8 +13,8 @@ func (bb *BranchBarrier) RedisCheckAdjustAmount(rd *redis.Client, key string, am
 	bid := bb.newBarrierID()
 	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, bb.BranchID, bb.Op, bid)
 	originOp := map[string]string{
-		BranchCancel:     BranchTry,
-		BranchCompensate: BranchAction,
+		dtmimp.OpCancel:     dtmimp.OpTry,
+		dtmimp.OpCompensate: dtmimp.OpAction,
 	}[bb.Op]
 	bkey2 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, bb.BranchID, originOp, bid)
 	v, err := rd.Eval(rd.Context(), ` -- RedisCheckAdjustAmount
@@ -43,7 +44,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 	if err == redis.Nil {
 		err = nil
 	}
-	if err == nil && bb.Op == opMsg && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
+	if err == nil && bb.Op == dtmimp.MsgDoOp && v == "DUPLICATE" { // msg DoAndSubmit should be rejected when duplicate
 		return ErrDuplicated
 	}
 	if err == nil && v == ResultFailure {
@@ -54,7 +55,7 @@ redis.call('INCRBY', KEYS[1], ARGV[1])
 
 // RedisQueryPrepared query prepared for redis
 func (bb *BranchBarrier) RedisQueryPrepared(rd *redis.Client, barrierExpire int) error {
-	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, "00", "msg", "01")
+	bkey1 := fmt.Sprintf("%s-%s-%s-%s", bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1)
 	v, err := rd.Eval(rd.Context(), ` -- RedisQueryPrepared
 local v = redis.call('GET', KEYS[1])
 if v == false then

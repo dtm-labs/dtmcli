@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -42,18 +43,20 @@ func (g *BranchIDGen) CurrentSubBranchID() string {
 // TransOptions transaction options
 type TransOptions struct {
 	WaitResult         bool              `json:"wait_result,omitempty" gorm:"-"`
-	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"` // for trans type: xa, tcc
-	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`  // for trans type: msg saga xa tcc
-	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"`
-	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`
+	TimeoutToFail      int64             `json:"timeout_to_fail,omitempty" gorm:"-"`     // for trans type: xa, tcc, unit: second
+	RequestTimeout     int64             `json:"requestTimeout" gorm:"-"`                // for global trans resets request timeout, unit: second
+	RetryInterval      int64             `json:"retry_interval,omitempty" gorm:"-"`      // for trans type: msg saga xa tcc, unit: second
+	PassthroughHeaders []string          `json:"passthrough_headers,omitempty" gorm:"-"` // for inherit the specified gin context headers
+	BranchHeaders      map[string]string `json:"branch_headers,omitempty" gorm:"-"`      // custom branch headers,  dtm server => service api
+	Concurrent         bool              `json:"concurrent" gorm:"-"`                    // for trans type: saga msg
 }
 
 // TransBase base for all trans
 type TransBase struct {
-	Gid        string `json:"gid"`
+	Gid        string `json:"gid"` //  NOTE: unique in storage, can customize the generation rules instead of using server-side generation, it will help with the tracking
 	TransType  string `json:"trans_type"`
 	Dtm        string `json:"-"`
-	CustomData string `json:"custom_data,omitempty"`
+	CustomData string `json:"custom_data,omitempty"` // nosql data persistence
 	TransOptions
 
 	Steps       []map[string]string `json:"steps,omitempty"`    // use in MSG/SAGA
@@ -63,6 +66,7 @@ type TransBase struct {
 	Op          string              `json:"-"` // used in XA/TCC
 
 	QueryPrepared string `json:"query_prepared,omitempty"` // used in MSG
+	Protocol      string `json:"protocol"`
 }
 
 // NewTransBase new a TransBase
@@ -76,13 +80,40 @@ func NewTransBase(gid string, transType string, dtm string, branchID string) *Tr
 	}
 }
 
+// WithGlobalTransRequestTimeout defines global trans request timeout
+func (t *TransBase) WithGlobalTransRequestTimeout(timeout int64) {
+	t.RequestTimeout = timeout
+}
+
 // TransBaseFromQuery construct transaction info from request
 func TransBaseFromQuery(qs url.Values) *TransBase {
-	return NewTransBase(qs.Get("gid"), qs.Get("trans_type"), qs.Get("dtm"), qs.Get("branch_id"))
+	return NewTransBase(EscapeGet(qs, "gid"), EscapeGet(qs, "trans_type"), EscapeGet(qs, "dtm"), EscapeGet(qs, "branch_id"))
 }
 
 // TransCallDtm TransBase call dtm
 func TransCallDtm(tb *TransBase, body interface{}, operation string) error {
+	if tb.RequestTimeout != 0 {
+		RestyClient.SetTimeout(time.Duration(tb.RequestTimeout) * time.Second)
+	}
+	if tb.Protocol == Jrpc {
+		var result map[string]interface{}
+		resp, err := RestyClient.R().
+			SetBody(map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      "no-use",
+				"method":  operation,
+				"params":  body,
+			}).
+			SetResult(&result).
+			Post(tb.Dtm)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode() != http.StatusOK || result["error"] != nil {
+			return errors.New(resp.String())
+		}
+		return nil
+	}
 	resp, err := RestyClient.R().
 		SetBody(body).Post(fmt.Sprintf("%s/%s", tb.Dtm, operation))
 	if err != nil {
@@ -108,6 +139,9 @@ func TransRegisterBranch(tb *TransBase, added map[string]string, operation strin
 
 // TransRequestBranch TransBase request branch result
 func TransRequestBranch(t *TransBase, method string, body interface{}, branchID string, op string, url string) (*resty.Response, error) {
+	if url == "" {
+		return nil, nil
+	}
 	resp, err := RestyClient.R().
 		SetBody(body).
 		SetQueryParams(map[string]string{

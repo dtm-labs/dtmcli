@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strconv"
@@ -144,7 +145,9 @@ func GetFuncName() string {
 // MayReplaceLocalhost when run in docker compose, change localhost to host.docker.internal for accessing host network
 func MayReplaceLocalhost(host string) string {
 	if os.Getenv("IS_DOCKER") != "" {
-		return strings.Replace(host, "localhost", "host.docker.internal", 1)
+		return strings.Replace(strings.Replace(host,
+			"localhost", "host.docker.internal", 1),
+			"127.0.0.1", "host.docker.internal", 1)
 	}
 	return host
 }
@@ -232,4 +235,27 @@ func DeferDo(rerr *error, success func() error, fail func() error) {
 			*rerr = success()
 		}
 	}()
+}
+
+// Escape solve CodeQL reported problem
+func Escape(input string) string {
+	v := strings.Replace(input, "\n", "", -1)
+	v = strings.Replace(v, "\r", "", -1)
+	v = strings.Replace(v, ";", "", -1)
+	// v = strings.Replace(v, "'", "", -1)
+	return v
+}
+
+// EscapeGet escape get
+func EscapeGet(qs url.Values, key string) string {
+	return Escape(qs.Get(key))
+}
+
+// InsertBarrier insert a record to barrier
+func InsertBarrier(tx DB, transType string, gid string, branchID string, op string, barrierID string, reason string) (int64, error) {
+	if op == "" {
+		return 0, nil
+	}
+	sql := GetDBSpecial().GetInsertIgnoreTemplate(BarrierTableName+"(trans_type, gid, branch_id, op, barrier_id, reason) values(?,?,?,?,?,?)", "uniq_barrier")
+	return DBExec(tx, sql, transType, gid, branchID, op, barrierID, reason)
 }

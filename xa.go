@@ -58,7 +58,7 @@ func NewXaClient(server string, mysqlConf DBConf, notifyURL string, register XaR
 	return xa, nil
 }
 
-// HandleCallback 处理commit/rollback的回调
+// HandleCallback handle commit/rollback callback
 func (xc *XaClient) HandleCallback(gid string, branchID string, action string) interface{} {
 	return xc.XaClientBase.HandleCallback(gid, branchID, action)
 }
@@ -101,5 +101,5 @@ func (xc *XaClient) XaGlobalTransaction2(gid string, custom func(*Xa), xaFunc Xa
 // CallBranch call a xa branch
 func (x *Xa) CallBranch(body interface{}, url string) (*resty.Response, error) {
 	branchID := x.NewSubBranchID()
-	return dtmimp.TransRequestBranch(&x.TransBase, "POST", body, branchID, BranchAction, url)
+	return dtmimp.TransRequestBranch(&x.TransBase, "POST", body, branchID, dtmimp.OpAction, url)
 }

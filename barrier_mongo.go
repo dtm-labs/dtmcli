@@ -25,22 +25,22 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 			return sc.AbortTransaction(sc)
 		})
 		originOp := map[string]string{
-			BranchCancel:     BranchTry,
-			BranchCompensate: BranchAction,
+			dtmimp.OpCancel:     dtmimp.OpTry,
+			dtmimp.OpCompensate: dtmimp.OpAction,
 		}[bb.Op]
 
 		originAffected, oerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, originOp, bid, bb.Op)
 		currentAffected, rerr := mongoInsertBarrier(sc, mc, bb.TransType, bb.Gid, bb.BranchID, bb.Op, bid, bb.Op)
 		logger.Debugf("originAffected: %d currentAffected: %d", originAffected, currentAffected)
 
-		if rerr == nil && bb.Op == opMsg && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
+		if rerr == nil && bb.Op == dtmimp.MsgDoOp && currentAffected == 0 { // for msg's DoAndSubmit, repeated insert should be rejected.
 			return ErrDuplicated
 		}
 
 		if rerr == nil {
 			rerr = oerr
 		}
-		if (bb.Op == BranchCancel || bb.Op == BranchCompensate) && originAffected > 0 || // null compensate
+		if (bb.Op == dtmimp.OpCancel || bb.Op == dtmimp.OpCompensate) && originAffected > 0 || // null compensate
 			currentAffected == 0 { // repeated request or dangled request
 			return
 		}
@@ -54,23 +54,23 @@ func (bb *BranchBarrier) MongoCall(mc *mongo.Client, busiCall func(mongo.Session
 // MongoQueryPrepared query prepared for redis
 // experimental
 func (bb *BranchBarrier) MongoQueryPrepared(mc *mongo.Client) error {
-	_, err := mongoInsertBarrier(context.Background(), mc, bb.TransType, bb.Gid, "00", "msg", "01", "rollback")
+	_, err := mongoInsertBarrier(context.Background(), mc, bb.TransType, bb.Gid, dtmimp.MsgDoBranch0, dtmimp.MsgDoOp, dtmimp.MsgDoBarrier1, dtmimp.OpRollback)
 	var result bson.M
 	if err == nil {
 		fs := strings.Split(dtmimp.BarrierTableName, ".")
 		barrier := mc.Database(fs[0]).Collection(fs[1])
 		err = barrier.FindOne(context.Background(), bson.D{
 			{Key: "gid", Value: bb.Gid},
-			{Key: "branch_id", Value: "00"},
-			{Key: "op", Value: "msg"},
-			{Key: "barrier_id", Value: "01"},
+			{Key: "branch_id", Value: dtmimp.MsgDoBranch0},
+			{Key: "op", Value: dtmimp.MsgDoOp},
+			{Key: "barrier_id", Value: dtmimp.MsgDoBarrier1},
 		}).Decode(&result)
 	}
 	var reason string
 	if err == nil {
 		reason, _ = result["reason"].(string)
 	}
-	if err == nil && reason == "rollback" {
+	if err == nil && reason == dtmimp.OpRollback {
 		return ErrFailure
 	}
 	return err
