@@ -1,13 +1,13 @@
-简体中文 | [English](./README.md)
+English | [简体中文](./README-cn.md)
 
 ## dtmcli
-`dtmcli` is the http client sdk for [dtm](https://github.com/dtm-labs/dtm), a distributed transaction framework.
+`dtmcli` 是分布式事务管理器[dtm](https://github.com/dtm-labs/dtm)的客户端sdk
 
-The code of this library is fully synchronised with the dtmcli directory under [dtm](https://github.com/dtm-labs/dtm). There will be very few dependencies associated with the current dtmcli and smaller size for the final binary file.
+这个库的代码与[dtm](https://github.com/dtm-labs/dtm)下的dtmcli代码保持完全同步，如果您需要线上使用，那么当前的dtmcli相关的依赖非常少，对于最终打包的镜像也会很少
 
-For detailed documentation and usage, please refer to [dtm](https://github.com/dtm-labs/dtm)
+具体文档和使用方式，请参考[dtm](https://github.com/dtm-labs/dtm)
 
-### a complete sample
+### 完整示例
 
 [dtmcli-go-sample](https://github.com/dtm-labs/dtmcli-go-sample)
 
