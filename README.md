@@ -1,5 +1,4 @@
-a client for distributed transaction manager [dtm](https://github.com/dtm-labs/dtm)
-
+English | [简体中文](./README-cn.md)
 
 `dtmcli` 是分布式事务管理器[dtm](https://github.com/dtm-labs/dtm)的客户端sdk
 
