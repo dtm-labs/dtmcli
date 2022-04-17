@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/dtm-labs/dtmdriver v0.0.3
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible

@@ -10,6 +10,7 @@ import (
 	"errors"
 
 	"github.com/dtm-labs/dtmcli/logger"
+	"github.com/dtm-labs/dtmdriver"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -44,8 +45,10 @@ var BarrierTableName = "dtm_barrier.barrier"
 func init() {
 	RestyClient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		r.URL = MayReplaceLocalhost(r.URL)
-		logger.Debugf("requesting: %s %s %s", r.Method, r.URL, MustMarshalString(r.Body))
-		return nil
+		u, err := dtmdriver.GetHTTPDriver().ResolveURL(r.URL)
+		logger.Debugf("requesting: %s %s %s resolved: %s", r.Method, r.URL, MustMarshalString(r.Body), u)
+		r.URL = u
+		return err
 	})
 	RestyClient.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
 		r := resp.Request
